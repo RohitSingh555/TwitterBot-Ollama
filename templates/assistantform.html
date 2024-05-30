@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Assistant</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    .loader-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .loader {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1001;
+    }
+</style>
+
+<body>
+    <div class="container mt-5">
+        <h1>Create Assistant</h1>
+        <form id="assistantForm">
+            <p class="font-monospace">Please select any of the following options as needed:</p>
+            <div class="d-flex justify-content-between align-content-center align-items-center ">
+                <div class="mb-3">
+                    <label for="uploadFile" class="form-label">Upload File</label>
+                    <input class="form-control" type="file" id="uploadFile" name="uploadFile" required>
+                </div>
+                <div class="mb-3">
+                    <label for="twitterUser" class="form-label">Twitter User</label>
+                    <select class="form-select" id="twitterUser" name="twitter_user">
+                        <option value="" selected>Select a username (optional)</option>
+                        {% for response in unique_author_data %}
+                        <option value="{{ response.author_id }}">{{ response.twitter_usernames }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3 form-check d-flex gap-3 align-content-center align-items-center">
+                    <input style="width:50px; height:50px" type="checkbox" class="form-check-input"
+                        id="selectYourTweets" name="selectYourTweets">
+                    <label class="form-check-label" for="selectYourTweets">Select your tweets on the timeline</label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="createAssistant()">Create Assistant</button>
+        </form>
+    </div>
+    <div class="loader-overlay" id="loader-overlay">
+        <img src="{{ url_for('static', filename='loading-gif.gif') }}" alt="Loading..." class="loader" id="loader">
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        async function createAssistant() {
+            const form = document.getElementById('assistantForm');
+            const formData = new FormData(form);
+
+            // Check if a username is selected
+            const twitterUser = formData.get('twitter_user');
+            /*if (!twitterUser) {
+                formData.delete('twitter_user'); // Remove the field if no value is selected
+            } */
+            showLoader();
+            const response = await fetch('http://127.0.0.1:3000/create_assistant', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                hideLoader();
+                window.location.href = '/';
+            } else {
+                alert('Failed to create assistant.');
+            }
+        }
+
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = 'block';
+            document.getElementById('loader').style.display = 'block';
+        }
+
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
+        }
+
+
+    </script>
+</body>
+
+</html>
